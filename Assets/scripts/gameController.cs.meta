@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3e106f21e15ae4c26acdef127f6f61d9
+timeCreated: 1515554431
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - cube: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
