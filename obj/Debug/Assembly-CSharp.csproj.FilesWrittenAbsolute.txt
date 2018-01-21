@@ -61,3 +61,5 @@
 /Users/marcochin/Desktop/falling cubs/Temp/bin/Debug/Unity.Cecil.Mdb.dll
 /Users/marcochin/Desktop/falling cubs/Temp/bin/Debug/UnityEditor.iOS.Extensions.Xcode.dll
 /Users/marcochin/Desktop/falling cubs/Temp/bin/Debug/UnityEditor.iOS.Extensions.Xcode.xml
+/Users/marcochin/Desktop/falling cubs/Temp/bin/Debug/TextMeshPro-2017.3-1.0.56-Editor.dll
+/Users/marcochin/Desktop/falling cubs/Temp/bin/Debug/TextMeshPro-2017.3-1.0.56-Runtime.dll

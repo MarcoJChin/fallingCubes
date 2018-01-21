@@ -12,39 +12,38 @@ public class followPlayer : MonoBehaviour {
 
 	public int camHeight;
 	public float playerHeight;
+	int playerCamOffset = 3;
 	bool justCentered;
 
 	Vector3 startPos;
 	Vector3 endPos;
 
 
-	void Start () {
-		camHeight = 3; //height of camera
+	public void resetGame(){
 		playerHeight = 0; //height of player
+		camHeight = (int)playerHeight + playerCamOffset; //height of camera
 
 		startPos = gameObject.transform.position;
 		endPos = gameObject.transform.position;
 	}
+
+	void Start () {
+		resetGame ();
+	}
 	
 	// Update is called once per frame
 	void Update () {
-
-
 		playerHeight = Mathf.Floor(player.transform.position.y);
 		//print(perc);
-		if (((playerHeight + 3) >= camHeight + 3 || ((playerHeight + 3)) <= camHeight - 3) && gameObject.transform.position.y == endPos.y) {
+		if (((camHeight - playerHeight) <= 0 || (camHeight - playerHeight) >= 2 * playerCamOffset) && gameObject.transform.position.y == endPos.y) {
 
 			endPos = gameObject.transform.position;
 			if (perc == 1) {
 				moveTime = 0.5f;
 				currentMoveTime = 0;
 
-				camHeight = (int)Mathf.Round(playerHeight + 3f); 
-				//print ("new cneter");
-
-				//print (center);
+				camHeight = (int)Mathf.Round(playerHeight + playerCamOffset); 
 				justCentered = true;
-
 			}
 
 			endPos.y = camHeight;

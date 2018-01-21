@@ -10,14 +10,31 @@ Lerps from location to location using a sin function to simulate jumping
 
 */
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class playerController : MonoBehaviour {
+
+	//game
+	public bool gameStarted = false;
 
 	//Audio
 	public AudioClip landedBlock;
 	public float volume;
 	AudioSource audio;
+
+	int currentHeight;
+	public GameObject camCenterHeight;
+	followPlayer camFollow;
+
+	//texts
+	public Text scoreText;
+	public Text heightText;
+
+	public int xBound1;
+	public int zBound1;
+	public int xBound2;
+	public int zBound2;
 
 	//Lerp variabls
 	float moveTime = 0.1f; //time it takes to move
@@ -27,10 +44,9 @@ public class playerController : MonoBehaviour {
 
 	//start/end pos
 	Vector3 startPos;
-	Vector3 endPos;
+	public Vector3 endPos;
 
 	float floorWidth;
-	float playerWidth;
 	Vector3 playerDim;
 
 	//help find end pos
@@ -46,6 +62,23 @@ public class playerController : MonoBehaviour {
 	public GameObject camera; 
 	turnCamera turnCamScript;
 
+
+	public void resetGame(){
+		//reset score
+		maxHeight = 0;
+		//gameObject.transform.position = new Vector3 (0f, 0.4f, 0f);
+		gameObject.GetComponent<BoxCollider> ().enabled = true;
+
+		//start player location
+		gameObject.transform.position = new Vector3 (0.0F, gameObject.transform.localScale.y/2f, 0.0F); //start position
+		endPos = gameObject.transform.position;
+
+		gameStarted = false;
+
+
+	}
+
+
 	//Helper Functions
 	void startJump(){
 		moveTime = 0.1f;
@@ -54,9 +87,9 @@ public class playerController : MonoBehaviour {
 	}
 
 	bool checkBounds(Vector3 location){
-		print("abs");
-		print((Mathf.Abs(location.x)));
-		return ((Mathf.Abs(location.x) <= (floorWidth/2f)) && (Mathf.Abs(location.z) <= (floorWidth/2f)));
+		//print("abs");
+		//print((Mathf.Abs(location.x)));
+		return ((location.x > xBound1-1) && (location.x < xBound2+1) && (location.z > zBound1-1) && (location.z < zBound2+1));
 	}
 
 	//check if block is blocking the path
@@ -93,40 +126,36 @@ public class playerController : MonoBehaviour {
 			endPos = nextLocation;
 			if (checkBlock (nextLocation)) {//there is a block in front
 				endPos = nextLocation + Vector3.up;
+
 				if (checkBlock (nextLocation + Vector3.up)) {//there is a block infront and above that
-					endPos = gameObject.transform.position;
+					endPos = nextLocation + Vector3.up * 2f;
+
+					if(checkBlock (nextLocation + Vector3.up*2f)){
+						endPos = gameObject.transform.position;
+					}
 				}
 			} else if (!checkBlock (nextLocation)) {//there is no block in front
 				if (!checkSurface (nextLocation)) {//there is no surface to jump on infront
 					if (checkSurface (nextLocation - Vector3.up)) {// there is a surface to land on one down
 						endPos = nextLocation - Vector3.up;
+
 					} else if (checkSurface (nextLocation - Vector3.up * 2f)) {// there is a surface to land on two down
 						endPos = nextLocation - Vector3.up * 2f;
+
 					} else if (!checkSurface (nextLocation - Vector3.up * 2f)) {//there is no surface 2 down to land on
 						endPos = gameObject.transform.position;
+
 					}
 				} else { //there is a surface to jump on
 					endPos = nextLocation;
 				}
 			}
 	}
-	/* else {//not within bounds
-			throughJump = true;
-			if (up) {
-				endPos = gameObject.transform.position - perspUp * 2f;
-			}else if (down) {
-				endPos = gameObject.transform.position + perspUp * 2f;
-			}else if (left) {
-				endPos = gameObject.transform.position + perspRight * 2f;
-			}else if (right) {
-				endPos = gameObject.transform.position - perspRight * 2f;
-			}
-		}*/
 
 	bool xUpDown;
 	bool zUpDown;
 
-	void inputDecide(){ //restart input 
+	void inputDecideLocation(){ //restart input 
 		//print (base_perc);
 		if(Input.GetButtonDown("Up") || 
 			Input.GetButtonDown("Down") ||
@@ -134,7 +163,7 @@ public class playerController : MonoBehaviour {
 			Input.GetButtonDown("Right")){
 			if(base_perc == 1){ //last jump ended
 				//play sound
-				audio.PlayOneShot (landedBlock,volume);
+				//audio.PlayOneShot (landedBlock,volume);
 				startPos = gameObject.transform.position;
 				startJump ();
 			}
@@ -142,7 +171,7 @@ public class playerController : MonoBehaviour {
 			perspUp = turnCamScript.perspectiveUp;//update perspective on input
 			perspRight = turnCamScript.perspectiveRight;//update perspective right
 
-			if (perspUp.x == 1 || perspUp.x == -1)
+			if (perspUp.x == 1 || perspUp.x == -1) //get which axis is which direction
 				xUpDown = true;
 			else if (perspUp.z == 1 || perspUp.z == -1)
 				zUpDown = true;
@@ -186,23 +215,10 @@ public class playerController : MonoBehaviour {
 						nextLocation = gameObject.transform.position - (perspRight * (floorWidth-1));
 					}
 				}
-				//decide
+				//decide action
 				decideJumpAction(nextLocation);
 			}
-
-			//action
-
-			//base_jump ();
-
-
-
-
 		}
-
-
-
-
-
 	}
 	
 	//Major functions
@@ -210,45 +226,44 @@ public class playerController : MonoBehaviour {
 
 		if (jumped == true) {
 
+			//update percent for lerp
 			currentMoveTime += Time.deltaTime * 0.5f;
 			base_perc = currentMoveTime / moveTime;
 
+			//set hophight to half player height
 			float hopHeight =gameObject.transform.localScale.y/2f;
 
-			//print (base_perc);
-
+			//height jump equation
 			var height = Mathf.Sin(Mathf.PI * base_perc) * hopHeight;
 
-
 			if (throughJump) {
-				//bool jumpedThroughWall = false;
-
 				//scale lerp
 
 				if (up || down) {
 					if (base_perc < 0.5f) { //shrink
 						if (xUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerWidth *  new Vector3(0,1,1), base_perc);
+							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerDim.x *  new Vector3(0,1,1), base_perc);
 						else if (zUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerWidth *  new Vector3(1,1,0), base_perc); 
+							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerDim.x *  new Vector3(1,1,0), base_perc); 
 					}
 					else //expand
 						if(xUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerWidth *  new Vector3(0,1,1), playerDim, base_perc); 
+							gameObject.transform.localScale = Vector3.Lerp (playerDim.x *  new Vector3(0,1,1), playerDim, base_perc); 
 						else if (zUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerWidth *  new Vector3(1,1,0), playerDim, base_perc);
+							gameObject.transform.localScale = Vector3.Lerp (playerDim.x *  new Vector3(1,1,0), playerDim, base_perc);
+					
 				} else if (right || left) {
 					if (base_perc < 0.5f) {//shrink
 						if(xUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerWidth *  new Vector3(1,1,0) , base_perc); 
+							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerDim.x *  new Vector3(1,1,0) , base_perc); 
 						else if (zUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerWidth *  new Vector3(0,1,1), base_perc);
+							gameObject.transform.localScale = Vector3.Lerp (playerDim, playerDim.x *  new Vector3(0,1,1), base_perc);
 					}
 					else//expand
 						if(xUpDown)
-							gameObject.transform.localScale = Vector3.Lerp (playerWidth *  new Vector3(1,1,0), playerDim , base_perc);
+							gameObject.transform.localScale = Vector3.Lerp (playerDim.x *  new Vector3(1,1,0), playerDim , base_perc);
 						else if (zUpDown)
-							gameObject.transform.localScale= Vector3.Lerp (playerWidth *  new Vector3(0,1,1), playerDim , base_perc); 
+							gameObject.transform.localScale= Vector3.Lerp (playerDim.x *  new Vector3(0,1,1), playerDim , base_perc); 
 				}
 
 				//position lerp
@@ -279,7 +294,7 @@ public class playerController : MonoBehaviour {
 					}
 				}
 
-			} else {
+			} else { //normal movement
 				gameObject.transform.position = Vector3.Lerp (startPos, endPos, base_perc) + Vector3.up * height;
 			}
 			if (base_perc >= 1) {
@@ -291,6 +306,8 @@ public class playerController : MonoBehaviour {
 				gameObject.transform.position = new Vector3 (x, y, z);
 				gameObject.transform.rotation = Quaternion.identity;
 
+				SetScoreTexts();
+
 				xUpDown = false;
 				zUpDown = false;
 
@@ -299,20 +316,42 @@ public class playerController : MonoBehaviour {
 			}
 		}
 	}
+	public int maxHeight = 0;
+	void SetScoreTexts ()
+	{
+		currentHeight = (int)Mathf.Round (camFollow.playerHeight);
+		if (currentHeight > maxHeight) {
+			maxHeight = currentHeight;
+		}
+		scoreText.text = "Score: " + maxHeight.ToString ();
+		heightText.text = "Height: " + currentHeight.ToString ();
+	}
+
+	public void startGame(){
+		resetGame();
+
+		gameStarted = true;
+	}
 
 	//Main Functions
 	void Start(){
+		//gameStarted = false;
+		maxHeight = 0;
+		//get height
+		camFollow = camCenterHeight.GetComponent<followPlayer>();
+
 		//set audio source
-		audio = GetComponent<AudioSource> ();
+		//audio = GetComponent<AudioSource> ();
 
 		//ground object
 		GameObject ground = GameObject.Find("Ground");
 		floorWidth = ground.transform.localScale.x * 10f;
+
+		//player object
 		playerDim = gameObject.transform.localScale;
-		playerWidth = gameObject.transform.localScale.x;
 
 		//camera object
-		turnCamScript = camera.GetComponent<turnCamera>();
+		turnCamScript = camera.GetComponent<turnCamera>();//to track height
 
 		//start player location
 		gameObject.transform.position = new Vector3 (0.0F, gameObject.transform.localScale.y/2f, 0.0F); //start position
@@ -320,7 +359,9 @@ public class playerController : MonoBehaviour {
 	}
 
 	void Update() {
-		inputDecide();
-		base_jump();
+		if (gameStarted) {
+			inputDecideLocation();
+			base_jump ();
+		}
 	}
 }

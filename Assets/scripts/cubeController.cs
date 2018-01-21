@@ -36,7 +36,7 @@ public class cubeController : MonoBehaviour {
 	void Start () {
 
 		rb = GetComponent<Rigidbody> ();
-		rb.velocity = new Vector3 (0, -1.5f, 0);
+		rb.velocity = new Vector3 (0, -0.5f, 0);
 		rb.isKinematic = false;
 		gameObject.tag = "falling_Cube";
 	}
