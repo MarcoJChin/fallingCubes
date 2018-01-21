@@ -49,10 +49,21 @@ public class detectDeath : MonoBehaviour {
 		//restart.SetActive(true);
 	}
 
+	IEnumerator waitReset(){
+		yield return new WaitForSeconds(3);
+		restart.SetActive(true);
+		gameObject.GetComponent<playerController>().resetGame();
+		gameCon.GetComponent<gameController> ().resetGame();
+		//restart.SetActive(false);
+		cam.GetComponent<turnCamera> ().resetGame();
+
+	}
+
 	void death(){
 		//gameCon.GetComponent<
 
-		//restart.SetActive(true);
+		deathText.text = "You died";
+		scoreText.text = "" + gameObject.GetComponent<playerController> ().maxHeight;
 
 		gameObject.GetComponent<BoxCollider> ().enabled = false;
 
@@ -60,12 +71,17 @@ public class detectDeath : MonoBehaviour {
 		gameCon.GetComponent<gameController> ().gameStarted = false;
 		//restart.SetActive(false);
 		cam.GetComponent<turnCamera> ().gameStarted = false;
+
+		StartCoroutine (waitReset());
+		//restart.SetActive(true);
+
+
+
+
 		//cam.GetComponent<turnCamera> ().resetGame ();
 
-		restart.SetActive(true);
 
-		deathText.text = "You died";
-		scoreText.text = "" + gameObject.GetComponent<playerController> ().maxHeight;
+
 
 		deathText.enabled = true;
 		scoreText.enabled = true;

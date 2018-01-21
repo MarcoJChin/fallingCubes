@@ -89,7 +89,7 @@ public class turnCamera : MonoBehaviour {
 
 	void Update() {
 
-		if (true) {
+		if (gameStarted) {
 			camHeight = Mathf.Round (camFollow.camHeight);
 
 			if (Input.GetButtonDown ("moveCamLeft") ||
